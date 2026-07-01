@@ -1,11 +1,16 @@
 # Miscellaneous
 *.class
-*.lock
 *.log
 *.pyc
 *.swp
+.DS_Store
 .buildlog/
 .history
+
+# NOTE: do NOT use a blanket *.lock ignore — for an app, pubspec.lock and
+# Podfile.lock must be committed for reproducible builds. (The wrapper package
+# ignores its own pubspec.lock via packages/twilio_voice/.gitignore, which is
+# correct for a library.)
 
 
 
