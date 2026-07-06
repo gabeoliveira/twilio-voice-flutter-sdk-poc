@@ -1,0 +1,87 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="twilio-voice.min.js"></script>
+  <style>
+    body { font-family: -apple-system, Roboto, sans-serif; padding: 12px; }
+    #status { font-weight: 600; }
+    #log { white-space: pre-wrap; font-size: 11px; color: #555; }
+  </style>
+</head>
+<body>
+  <div id="status">idle</div>
+  <pre id="log"></pre>
+  <script>
+    // NOTE: this runs in the WebView's browser JS engine — performance.now()/Date
+    // are available here (unlike the workflow sandbox). Timings are in ms.
+    const P = () => performance.now();
+    let device = null, activeCall = null;
+    let tokenServer = '', identity = 'flutter-demo-user';
+    const t = {};
+
+    function log(m) { document.getElementById('log').textContent += m + '\n'; }
+    function setStatus(s) { document.getElementById('status').textContent = s; }
+    function toFlutter(handler, obj) {
+      if (window.flutter_inappwebview) window.flutter_inappwebview.callHandler(handler, obj);
+    }
+
+    async function fetchToken() {
+      const r = await fetch(tokenServer + '/token?identity=' + encodeURIComponent(identity));
+      if (!r.ok) throw new Error('token ' + r.status);
+      return (await r.json()).token;
+    }
+
+    // Fetch token + construct Device (the "warm-up" cost). Times each.
+    async function initDevice() {
+      const a = P();
+      const token = await fetchToken();
+      t.tokenMs = P() - a;
+      const b = P();
+      device = new Twilio.Device(token, { codecPreferences: ['opus', 'pcmu'], logLevel: 'error' });
+      t.deviceInitMs = P() - b;
+      setStatus('device ready');
+    }
+
+    // Called by Flutter after page load to pre-warm the Device (models warm path).
+    async function boot(url, id) {
+      tokenServer = url; identity = id || identity;
+      try { await initDevice(); toFlutter('ready', { ok: true, tokenMs: Math.round(t.tokenMs), deviceInitMs: Math.round(t.deviceInitMs) }); }
+      catch (e) { log('boot error ' + e); toFlutter('ready', { ok: false, error: String(e) }); }
+    }
+
+    // Connect a call and time connect→ringing→accept. mode = 'cold' | 'warm'.
+    async function placeCall(to, mode) {
+      try {
+        if (!device) await initDevice();
+        const start = P();
+        t.connectInvoked = start; t.ringing = null; t.connected = null;
+        setStatus('connecting');
+        const call = await device.connect({ params: { To: to } });
+        activeCall = call;
+        call.on('ringing', () => { t.ringing = P(); setStatus('ringing'); });
+        call.on('accept', () => {
+          t.connected = P();
+          const connectToRinging = t.ringing != null ? Math.round(t.ringing - start) : null;
+          const ringingToConnected = (t.connected != null && t.ringing != null) ? Math.round(t.connected - t.ringing) : null;
+          const payload = {
+            mode,
+            tokenMs: t.tokenMs != null ? Math.round(t.tokenMs) : null,
+            deviceInitMs: t.deviceInitMs != null ? Math.round(t.deviceInitMs) : null,
+            connectToRinging, ringingToConnected,
+            total: Math.round(t.connected - start),
+          };
+          setStatus('connected');
+          log('[timing-webview] ' + JSON.stringify(payload));
+          toFlutter('timing', payload);
+        });
+        call.on('disconnect', () => setStatus('disconnected'));
+        call.on('error', (e) => { setStatus('error ' + e.message); log('call error ' + e.message); });
+      } catch (e) { setStatus('error'); log('placeCall error ' + e); }
+    }
+
+    function hangup() { if (activeCall) activeCall.disconnect(); }
+  </script>
+</body>
+</html>

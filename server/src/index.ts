@@ -32,6 +32,14 @@ const { VoiceResponse } = twilio.twiml;
 const app = express();
 app.use(express.urlencoded({ extended: false }));
 
+// Dev-only: the WebView/JS-SDK timing harness fetches /token from a file:// origin,
+// so the browser applies CORS. Allow it for local measurement. (Not for production —
+// scope this to your app's origin, or keep token minting same-origin.)
+app.use((_req: Request, res: Response, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  next();
+});
+
 /**
  * GET /token?identity=<id>
  * Mints a Twilio Access Token with a Voice grant for outbound calling.

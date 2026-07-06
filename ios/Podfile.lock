@@ -1,5 +1,13 @@
 PODS:
   - Flutter (1.0.0)
+  - flutter_inappwebview_ios (0.0.1):
+    - Flutter
+    - flutter_inappwebview_ios/Core (= 0.0.1)
+    - OrderedSet (~> 6.0.3)
+  - flutter_inappwebview_ios/Core (0.0.1):
+    - Flutter
+    - OrderedSet (~> 6.0.3)
+  - OrderedSet (6.0.3)
   - twilio_voice (0.0.1):
     - Flutter
     - TwilioVoice (~> 6.13)
@@ -7,20 +15,26 @@ PODS:
 
 DEPENDENCIES:
   - Flutter (from `Flutter`)
+  - flutter_inappwebview_ios (from `.symlinks/plugins/flutter_inappwebview_ios/ios`)
   - twilio_voice (from `.symlinks/plugins/twilio_voice/ios`)
 
 SPEC REPOS:
   trunk:
+    - OrderedSet
     - TwilioVoice
 
 EXTERNAL SOURCES:
   Flutter:
     :path: Flutter
+  flutter_inappwebview_ios:
+    :path: ".symlinks/plugins/flutter_inappwebview_ios/ios"
   twilio_voice:
     :path: ".symlinks/plugins/twilio_voice/ios"
 
 SPEC CHECKSUMS:
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
+  flutter_inappwebview_ios: b89ba3482b96fb25e00c967aae065701b66e9b99
+  OrderedSet: e539b66b644ff081c73a262d24ad552a69be3a94
   twilio_voice: 73d724c676592ed19592fccf2da4e2134985ccc2
   TwilioVoice: 04e059fd28d95423b971e823b1c1c1d6737e4e1b
 

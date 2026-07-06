@@ -41,6 +41,7 @@ dependencies:
 
   # Calls the token server to mint a Twilio Access Token.
   http: ^1.2.0
+  flutter_inappwebview: ^6.1.5
 
 dev_dependencies:
   flutter_test:
@@ -63,6 +64,11 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+
+  # WebView/JS-SDK comparison harness assets (perf/webview-comparison branch).
+  assets:
+    - assets/twilio-voice.min.js
+    - assets/webview_dialer.html
 
   # To add assets to your application, add an assets section, like this:
   # assets:
